@@ -6,7 +6,7 @@ using TodoListApi.Enums;
 
 namespace TodoListApi.Controllers
 {
-    [Route("api/TodoList")]
+    [Route("api/TodoTasks")]
     [ApiController]
     public class TodoTasksController : ControllerBase
     {
@@ -18,13 +18,15 @@ namespace TodoListApi.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<TodoTask>> GetAllTasks(TodoTaskStatus todoTaskStatus)
+        [ProducesResponseType(404)]
+        [ProducesResponseType(200)]
+        public ActionResult<List<TodoTask>> Get(TodoTaskStatus todoTaskStatus)
         {
             return _unitOfWork.TodoTaskRepository.GetTasksByStatus(todoTaskStatus);
         }
 
-        [HttpGet("{id}", Name = "GetTodoTask")]
-        public ActionResult<TodoTask> GetById(int id)
+        [HttpGet("{id}", Name = "GetTaskById")]
+        public ActionResult<TodoTask> Get(int id)
         {
             var todoTask = _unitOfWork.TodoTaskRepository.Get(id);
 
@@ -37,24 +39,21 @@ namespace TodoListApi.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddNewTodoTask(TodoTask newTodoTask)
+        [ProducesResponseType(400)]
+        [ProducesResponseType(201)]
+        public IActionResult Create(TodoTask todoTask)
         {
-           _unitOfWork.TodoTaskRepository.Add(newTodoTask);
+           _unitOfWork.TodoTaskRepository.Add(todoTask);
             _unitOfWork.Complete();
 
-            return CreatedAtRoute("GetTodoTask", new { id = newTodoTask.Id }, newTodoTask);
+            return CreatedAtRoute("GetTaskById", new { id = todoTask.Id }, todoTask);
         }
 
-        [HttpPut("{id}")]
-        public IActionResult Update(int id)
+        [HttpPut]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
+        public IActionResult Update(TodoTask todoTaskToUpdate)
         {
-            var todoTaskToUpdate = _unitOfWork.TodoTaskRepository.Get(id);
-
-            if (todoTaskToUpdate == null)
-            {
-                return NotFound();
-            }
-
             _unitOfWork.Update(todoTaskToUpdate);
             _unitOfWork.Complete();
 
@@ -62,6 +61,8 @@ namespace TodoListApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(204)]
         public IActionResult Delete(int id)
         {
             var todoTaskToDelete = _unitOfWork.TodoTaskRepository.Get(id);
